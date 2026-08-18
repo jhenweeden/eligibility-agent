@@ -6,3 +6,4 @@ timestamp,email,program_area,determination,answers
 2026-08-18T19:15:18.404Z,john@jweeden.com,Environmental Education,reject,"{""indep"":""No""}"
 2026-08-18T19:54:48.261Z,john@jweeden.com,Sustainable Consumption,accept,"{""usa"":""Yes""}"
 2026-08-18T19:56:58.517Z,john@jweeden.com,Global Biodiversity,accept,"{""country"":""Mozambique"",""pct"":""10""}"
+2026-08-18T20:03:46.927Z,john@jweeden.com,Conservation Infrastructure,accept,"{""usa"":""Yes""}"
