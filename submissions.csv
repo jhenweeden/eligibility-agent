@@ -3,3 +3,4 @@ timestamp,email,program_area,determination,answers
 2026-08-18T19:06:04.118Z,john@jweeden.com,Northern Rockies,reject,"{""usa"":""No""}"
 2026-08-18T19:07:18.289Z,john@jweeden.com,California Floristic Province,reject,"{""ca"":""No""}"
 2026-08-18T19:10:22.626Z,john@jweeden.com,Conservation Infrastructure,reject,"{""usa"":""No""}"
+2026-08-18T19:15:18.404Z,john@jweeden.com,Environmental Education,reject,"{""indep"":""No""}"
