@@ -65,6 +65,11 @@
   var overlay = document.getElementById('eligibility-modal-overlay');
   var iframe = document.getElementById('eligibility-iframe');
 
+  // Move the overlay to be a direct child of <body>. Left in place, it can
+  // get trapped behind theme elements by an ancestor's stacking context
+  // (position/transform/opacity/filter), which no z-index can escape.
+  document.body.appendChild(overlay);
+
   openBtn.addEventListener('click', function () {
     // Load the widget fresh each time it's opened, so a previous session doesn't linger.
     iframe.src = iframe.getAttribute('data-src');
