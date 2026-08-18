@@ -32,18 +32,6 @@
     overflow: hidden;
     box-shadow: 0 10px 40px rgba(0,0,0,0.25);
   ">
-    <button id="eligibility-close-btn" aria-label="Close" style="
-      position: absolute;
-      top: 10px;
-      right: 12px;
-      background: transparent;
-      border: none;
-      font-size: 22px;
-      line-height: 1;
-      cursor: pointer;
-      color: #6b6a64;
-      z-index: 1;
-    ">&times;</button>
     <iframe
       id="eligibility-iframe"
       src=""
@@ -57,7 +45,6 @@
 <script>
 (function () {
   var openBtn = document.getElementById('eligibility-open-btn');
-  var closeBtn = document.getElementById('eligibility-close-btn');
   var overlay = document.getElementById('eligibility-modal-overlay');
   var iframe = document.getElementById('eligibility-iframe');
 
@@ -77,7 +64,6 @@
     iframe.src = '';
   }
 
-  closeBtn.addEventListener('click', closeModal);
   overlay.addEventListener('click', function (e) {
     if (e.target === overlay) closeModal();
   });
