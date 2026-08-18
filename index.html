@@ -86,18 +86,6 @@
   .end-card.accept .label { color: var(--accent); }
   .end-card.reject .label { color: var(--danger); }
   .end-card .text { font-size: 14px; line-height: 1.55; }
-
-  .restart-row { margin-top: 14px; text-align: right; }
-  .restart-row button {
-    font-family: inherit;
-    font-size: 13px;
-    padding: 7px 12px;
-    border-radius: 6px;
-    border: 1px solid var(--line);
-    background: transparent;
-    color: var(--ink-soft);
-    cursor: pointer;
-  }
 </style>
 </head>
 <body>
@@ -250,14 +238,6 @@ function showEndCard(kind, text) {
   div.innerHTML = '<div class="label">' + (kind === 'accept' ? 'Eligible' : 'Not eligible') + '</div><div class="text"></div>';
   div.querySelector('.text').textContent = text;
   thread.appendChild(div);
-
-  const restartRow = document.createElement('div');
-  restartRow.className = 'restart-row';
-  const restartBtn = document.createElement('button');
-  restartBtn.textContent = 'Start a new check';
-  restartBtn.addEventListener('click', restart);
-  restartRow.appendChild(restartBtn);
-  thread.appendChild(restartRow);
   thread.scrollTop = thread.scrollHeight;
 
   submitLog(kind === 'accept' ? 'accept' : 'reject');
