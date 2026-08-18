@@ -1,0 +1,84 @@
+<!--
+  Paste this into a WordPress "Custom HTML" block on the page where you
+  want the eligibility check to appear. Replace WIDGET_URL below with
+  your deployed Vercel URL (e.g. https://your-project.vercel.app).
+-->
+
+<button id="eligibility-open-btn" style="
+  font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+  font-size: 15px;
+  font-weight: 600;
+  padding: 12px 22px;
+  border-radius: 6px;
+  border: none;
+  background: #3c5b4a;
+  color: #fff;
+  cursor: pointer;
+">Check eligibility</button>
+
+<div id="eligibility-modal-overlay" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 9999;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+">
+  <div style="
+    position: relative;
+    width: 100%;
+    max-width: 640px;
+    max-height: 90vh;
+    background: #f5f4f0;
+    border-radius: 10px;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.25);
+  ">
+    <button id="eligibility-close-btn" aria-label="Close" style="
+      position: absolute;
+      top: 10px;
+      right: 12px;
+      background: transparent;
+      border: none;
+      font-size: 22px;
+      line-height: 1;
+      cursor: pointer;
+      color: #6b6a64;
+      z-index: 1;
+    ">&times;</button>
+    <iframe
+      id="eligibility-iframe"
+      src=""
+      data-src="WIDGET_URL"
+      title="Eligibility check"
+      style="width: 100%; height: 90vh; max-height: 700px; border: none; display: block;"
+    ></iframe>
+  </div>
+</div>
+
+<script>
+(function () {
+  var openBtn = document.getElementById('eligibility-open-btn');
+  var closeBtn = document.getElementById('eligibility-close-btn');
+  var overlay = document.getElementById('eligibility-modal-overlay');
+  var iframe = document.getElementById('eligibility-iframe');
+
+  openBtn.addEventListener('click', function () {
+    // Load the widget fresh each time it's opened, so a previous session doesn't linger.
+    iframe.src = iframe.getAttribute('data-src');
+    overlay.style.display = 'flex';
+  });
+
+  function closeModal() {
+    overlay.style.display = 'none';
+    iframe.src = '';
+  }
+
+  closeBtn.addEventListener('click', closeModal);
+  overlay.addEventListener('click', function (e) {
+    if (e.target === overlay) closeModal();
+  });
+})();
+</script>

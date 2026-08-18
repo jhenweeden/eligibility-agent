@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Eligibility check</title>
+<style>
+  :root {
+    --bg: #f5f4f0;
+    --card: #ffffff;
+    --ink: #1c1b19;
+    --ink-soft: #6b6a64;
+    --line: #ddd9d0;
+    --accent: #3c5b4a;
+    --accent-soft: #e7ede9;
+    --danger: #a3402f;
+    --danger-soft: #f5e9e6;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--bg);
+    color: var(--ink);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 24px 16px;
+  }
+  .wrap { width: 100%; max-width: 600px; }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--line);
+    border-radius: 10px;
+    padding: 20px;
+  }
+  .msg-thread { display: flex; flex-direction: column; gap: 14px; margin-bottom: 18px; }
+  .msg { max-width: 88%; padding: 10px 14px; border-radius: 10px; font-size: 14px; line-height: 1.5; white-space: pre-wrap; }
+  .msg.agent { align-self: flex-start; background: var(--accent-soft); color: var(--ink); border-bottom-left-radius: 3px; }
+  .msg.user { align-self: flex-end; background: var(--ink); color: #fff; border-bottom-right-radius: 3px; }
+
+  .choices { display: flex; flex-wrap: wrap; gap: 8px; }
+  .choice-btn {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 9px 16px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: #fdfcfa;
+    color: var(--ink);
+    cursor: pointer;
+  }
+  .choice-btn:hover { border-color: var(--accent); }
+
+  .text-row { display: flex; gap: 8px; }
+  .text-row input {
+    flex: 1;
+    font-family: inherit;
+    font-size: 14px;
+    padding: 10px 12px;
+    border: 1px solid var(--line);
+    border-radius: 6px;
+    background: #fdfcfa;
+    color: var(--ink);
+  }
+  .text-row input:focus { outline: none; border-color: var(--accent); }
+  .text-row button {
+    font-family: inherit;
+    font-size: 14px;
+    font-weight: 600;
+    padding: 10px 18px;
+    border-radius: 6px;
+    border: none;
+    background: var(--accent);
+    color: #fff;
+    cursor: pointer;
+  }
+  .text-row button:disabled { opacity: 0.5; cursor: default; }
+
+  .err { color: var(--danger); font-size: 13px; margin-top: 8px; }
+
+  .end-card { margin-top: 8px; padding: 16px; border-radius: 8px; }
+  .end-card.accept { background: var(--accent-soft); border: 1px solid var(--accent); }
+  .end-card.reject { background: var(--danger-soft); border: 1px solid var(--danger); }
+  .end-card .label { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+  .end-card.accept .label { color: var(--accent); }
+  .end-card.reject .label { color: var(--danger); }
+  .end-card .text { font-size: 14px; line-height: 1.55; }
+
+  .restart-row { margin-top: 14px; text-align: right; }
+  .restart-row button {
+    font-family: inherit;
+    font-size: 13px;
+    padding: 7px 12px;
+    border-radius: 6px;
+    border: 1px solid var(--line);
+    background: transparent;
+    color: var(--ink-soft);
+    cursor: pointer;
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <div class="card">
+    <div class="msg-thread" id="thread"></div>
+    <div id="input-area"></div>
+  </div>
+</div>
+
+<script>
+/* -------------------------------------------------------------------
+   CONFIG: point this at your deployed serverless function.
+   If the widget is served from the same Vercel project as /api/submit,
+   leave this as a relative path.
+------------------------------------------------------------------- */
+const SUBMIT_ENDPOINT = '/api/submit';
+
+const SOUTH_AMERICA = ['argentina','bolivia','brazil','chile','colombia','ecuador','guyana','paraguay','peru','suriname','uruguay','venezuela'];
+const CENTRAL_AMERICA = ['belize','costa rica','el salvador','guatemala','honduras','nicaragua','panama'];
+const AFRICA = ['algeria','angola','benin','botswana','burkina faso','burundi','cabo verde','cameroon','central african republic','chad','comoros','congo','democratic republic of the congo','djibouti','egypt','equatorial guinea','eritrea','eswatini','ethiopia','gabon','gambia','ghana','guinea','guinea-bissau','ivory coast',"cote d'ivoire",'kenya','lesotho','liberia','libya','madagascar','malawi','mali','mauritania','mauritius','morocco','mozambique','namibia','niger','nigeria','rwanda','sao tome and principe','senegal','seychelles','sierra leone','somalia','south africa','south sudan','sudan','tanzania','togo','tunisia','uganda','zambia','zimbabwe'];
+
+function countryQualifies(country) {
+  const c = country.trim().toLowerCase();
+  return SOUTH_AMERICA.includes(c) || CENTRAL_AMERICA.includes(c) || AFRICA.includes(c);
+}
+
+const ACCEPT_TEXT = 'Thank you for those answers, we will be contacting you by email within the next couple of working days with a link to submit an LOI and a code.';
+const REJECT_TEXT = 'According to your answers, you would not be a good fit for our program area.';
+
+const PROGRAM_AREAS = [
+  'California Floristic Province',
+  'Conservation Infrastructure',
+  'Environmental Education',
+  'Global Biodiversity',
+  'Northern Rockies',
+  'Sustainable Consumption'
+];
+
+// Each flow is a list of steps. A step resolves to 'accept', 'reject', or the id of the next step.
+const FLOWS = {
+  'California Floristic Province': [
+    { id: 'ca', type: 'yesno', text: 'Is your project located in California?',
+      resolve: yes => yes ? 'accept' : 'reject' }
+  ],
+  'Conservation Infrastructure': [
+    { id: 'usa', type: 'yesno', text: 'Is your project located in the USA?',
+      resolve: yes => yes ? 'accept' : 'reject' }
+  ],
+  'Environmental Education': [
+    { id: 'indep', type: 'yesno', text: 'Is your organization independent from a university?',
+      resolve: yes => yes ? 'usa' : 'reject' },
+    { id: 'usa', type: 'yesno', text: 'Is your organization located in the USA?',
+      resolve: yes => yes ? 'accept' : 'reject' }
+  ],
+  'Global Biodiversity': [
+    { id: 'country', type: 'text', text: 'In which country is your project primarily located?',
+      resolve: answer => countryQualifies(answer) ? 'pct' : 'reject' },
+    { id: 'pct', type: 'number', text: 'For what percentage of your project budget are you asking the Weeden Foundation to provide funds for?',
+      resolve: answer => {
+        const n = parseFloat(answer);
+        if (isNaN(n) || n < 10 || n > 80) return 'reject';
+        return 'accept';
+      } }
+  ],
+  'Northern Rockies': [
+    { id: 'usa', type: 'yesno', text: 'Is your organization located in the USA?',
+      resolve: yes => yes ? 'accept' : 'reject' }
+  ],
+  'Sustainable Consumption': [
+    { id: 'usa', type: 'yesno', text: 'Is your organization located in the USA?',
+      resolve: yes => yes ? 'accept' : 'reject' }
+  ]
+};
+
+const thread = document.getElementById('thread');
+const inputArea = document.getElementById('input-area');
+
+let state = {
+  email: null,
+  programArea: null,
+  answers: {},
+  flowStepIndex: 0
+};
+
+function addMessage(role, text) {
+  const div = document.createElement('div');
+  div.className = 'msg ' + role;
+  div.textContent = text;
+  thread.appendChild(div);
+  thread.scrollTop = thread.scrollHeight;
+}
+
+function clearInputArea() {
+  inputArea.innerHTML = '';
+}
+
+function renderTextInput(placeholder, onSubmit, opts) {
+  clearInputArea();
+  const row = document.createElement('div');
+  row.className = 'text-row';
+  const input = document.createElement('input');
+  input.type = (opts && opts.numeric) ? 'number' : 'text';
+  input.placeholder = placeholder;
+  if (opts && opts.numeric) { input.min = 0; input.max = 100; }
+  const btn = document.createElement('button');
+  btn.textContent = 'Send';
+  const err = document.createElement('div');
+  err.className = 'err';
+  err.style.display = 'none';
+
+  function submit() {
+    const val = input.value.trim();
+    if (!val) {
+      err.textContent = 'Enter an answer first.';
+      err.style.display = 'block';
+      return;
+    }
+    err.style.display = 'none';
+    onSubmit(val);
+  }
+
+  btn.addEventListener('click', submit);
+  input.addEventListener('keydown', e => { if (e.key === 'Enter') submit(); });
+  row.appendChild(input);
+  row.appendChild(btn);
+  inputArea.appendChild(row);
+  inputArea.appendChild(err);
+  input.focus();
+}
+
+function renderChoices(options, onSubmit) {
+  clearInputArea();
+  const wrap = document.createElement('div');
+  wrap.className = 'choices';
+  options.forEach(opt => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-btn';
+    btn.textContent = opt;
+    btn.addEventListener('click', () => onSubmit(opt));
+    wrap.appendChild(btn);
+  });
+  inputArea.appendChild(wrap);
+}
+
+function showEndCard(kind, text) {
+  clearInputArea();
+  const div = document.createElement('div');
+  div.className = 'end-card ' + kind;
+  div.innerHTML = '<div class="label">' + (kind === 'accept' ? 'Eligible' : 'Not eligible') + '</div><div class="text"></div>';
+  div.querySelector('.text').textContent = text;
+  thread.appendChild(div);
+
+  const restartRow = document.createElement('div');
+  restartRow.className = 'restart-row';
+  const restartBtn = document.createElement('button');
+  restartBtn.textContent = 'Start a new check';
+  restartBtn.addEventListener('click', restart);
+  restartRow.appendChild(restartBtn);
+  thread.appendChild(restartRow);
+  thread.scrollTop = thread.scrollHeight;
+
+  submitLog(kind === 'accept' ? 'accept' : 'reject');
+}
+
+async function submitLog(determination) {
+  try {
+    await fetch(SUBMIT_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email: state.email,
+        programArea: state.programArea,
+        answers: state.answers,
+        determination: determination
+      })
+    });
+  } catch (e) {
+    // Logging failure should never block the person from seeing their result.
+    console.error('Could not log submission', e);
+  }
+}
+
+function askEmail() {
+  addMessage('agent', 'Please provide your email.');
+  renderTextInput('name@organization.com', val => {
+    addMessage('user', val);
+    state.email = val;
+    askProgramArea();
+  });
+}
+
+function askProgramArea() {
+  addMessage('agent', 'For which program area are you seeking eligibility?');
+  renderChoices(PROGRAM_AREAS, choice => {
+    addMessage('user', choice);
+    state.programArea = choice;
+    state.flowStepIndex = 0;
+    runStep(FLOWS[choice][0].id);
+  });
+}
+
+function runStep(stepId) {
+  const flow = FLOWS[state.programArea];
+  const step = flow.find(s => s.id === stepId);
+  addMessage('agent', step.text);
+
+  if (step.type === 'yesno') {
+    renderChoices(['Yes', 'No'], choice => {
+      addMessage('user', choice);
+      const yes = choice === 'Yes';
+      state.answers[step.id] = choice;
+      advance(step.resolve(yes));
+    });
+  } else {
+    renderTextInput(
+      step.type === 'number' ? 'e.g. 25' : 'Type your answer',
+      val => {
+        addMessage('user', val);
+        state.answers[step.id] = val;
+        advance(step.resolve(val));
+      },
+      { numeric: step.type === 'number' }
+    );
+  }
+}
+
+function advance(next) {
+  if (next === 'accept') {
+    showEndCard('accept', ACCEPT_TEXT);
+  } else if (next === 'reject') {
+    showEndCard('reject', REJECT_TEXT);
+  } else {
+    runStep(next);
+  }
+}
+
+function restart() {
+  state = { email: null, programArea: null, answers: {}, flowStepIndex: 0 };
+  thread.innerHTML = '';
+  askEmail();
+}
+
+restart();
+</script>
+</body>
+</html>
