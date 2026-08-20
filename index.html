@@ -113,6 +113,13 @@ function countryQualifies(country) {
   return SOUTH_AMERICA.includes(c) || CENTRAL_AMERICA.includes(c) || AFRICA.includes(c);
 }
 
+// Exact email addresses to reject immediately, before any other questions.
+const BLOCKED_EMAILS = ['drea@empulsive.ink'];
+
+function isBlockedEmail(email) {
+  return BLOCKED_EMAILS.includes(email.trim().toLowerCase());
+}
+
 const ACCEPT_TEXT = 'Thank you for those answers, we will be contacting you by email within the next couple of working days with a link to submit an LOI and a code.';
 const REJECT_TEXT = 'According to your answers, you would not be a good fit for our program area.';
 
@@ -281,6 +288,10 @@ function askEmail() {
   renderTextInput('name@organization.com', val => {
     addMessage('user', val);
     state.email = val;
+    if (isBlockedEmail(val)) {
+      showEndCard('reject', REJECT_TEXT);
+      return;
+    }
     askProgramArea();
   });
 }
