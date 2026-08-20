@@ -37,7 +37,7 @@
       src=""
       data-src="https://eligibility-agent.vercel.app/"
       title="Eligibility check"
-      style="width: 100%; height: 90vh; max-height: 700px; border: none; display: block;"
+      style="width: 100%; height: 380px; max-height: 90vh; border: none; display: block; transition: height 0.25s ease;"
     ></iframe>
   </div>
 </div>
@@ -66,6 +66,16 @@
 
   overlay.addEventListener('click', function (e) {
     if (e.target === overlay) closeModal();
+  });
+
+  // The widget reports its content height so the dialog can shrink or
+  // grow to fit whatever step is currently showing, instead of sitting
+  // at a fixed size.
+  window.addEventListener('message', function (e) {
+    if (!e.data || e.data.source !== 'eligibility-widget') return;
+    var maxHeight = Math.round(window.innerHeight * 0.9);
+    var height = Math.min(Math.max(e.data.height, 200), maxHeight);
+    iframe.style.height = height + 'px';
   });
 })();
 </script>

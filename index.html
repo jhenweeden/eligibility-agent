@@ -179,6 +179,19 @@ function addMessage(role, text) {
   thread.scrollTop = thread.scrollHeight;
 }
 
+function clearThread() {
+  thread.innerHTML = '';
+}
+
+function reportHeight() {
+  if (window.parent === window) return;
+  window.parent.postMessage(
+    { source: 'eligibility-widget', height: document.body.scrollHeight },
+    '*'
+  );
+}
+new MutationObserver(reportHeight).observe(document.body, { childList: true, subtree: true, characterData: true });
+
 function clearInputArea() {
   inputArea.innerHTML = '';
 }
@@ -232,6 +245,7 @@ function renderChoices(options, onSubmit) {
 }
 
 function showEndCard(kind, text) {
+  clearThread();
   clearInputArea();
   const div = document.createElement('div');
   div.className = 'end-card ' + kind;
@@ -262,6 +276,7 @@ async function submitLog(determination) {
 }
 
 function askEmail() {
+  clearThread();
   addMessage('agent', 'Please provide your email.');
   renderTextInput('name@organization.com', val => {
     addMessage('user', val);
@@ -271,6 +286,7 @@ function askEmail() {
 }
 
 function askProgramArea() {
+  clearThread();
   addMessage('agent', 'For which program area are you seeking eligibility?');
   renderChoices(PROGRAM_AREAS, choice => {
     addMessage('user', choice);
@@ -283,6 +299,7 @@ function askProgramArea() {
 function runStep(stepId) {
   const flow = FLOWS[state.programArea];
   const step = flow.find(s => s.id === stepId);
+  clearThread();
   addMessage('agent', step.text);
 
   if (step.type === 'yesno') {
