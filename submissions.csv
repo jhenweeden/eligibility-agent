@@ -18,3 +18,4 @@ timestamp,email,program_area,determination,answers
 2026-08-20T20:34:40.603Z,john@jweeden.com,Global Biodiversity,reject,"{""country"":""Columbii""}"
 2026-08-20T20:35:15.765Z,john@jweeden.com,Global Biodiversity,reject,"{""country"":""Culombia""}"
 2026-08-20T20:35:34.883Z,john@jweeden.com,Global Biodiversity,reject,"{""country"":""Columbia""}"
+2026-08-20T20:38:58.285Z,john@jweeden.com,Global Biodiversity,reject,"{""country"":""Colombia"",""pct"":""82""}"
