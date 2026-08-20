@@ -14,3 +14,4 @@ timestamp,email,program_area,determination,answers
 2026-08-20T19:59:27.046Z,john@jweeden.com,Conservation Infrastructure,accept,"{""usa"":""Yes""}"
 2026-08-20T20:29:43.890Z,john@jweeden.com,Global Biodiversity,reject,"{""country"":""England""}"
 2026-08-20T20:30:51.804Z,john@jweeden.com,Global Biodiversity,accept,"{""country"":""Tanzania"",""pct"":""50""}"
+2026-08-20T20:33:09.470Z,john@jweeden.com,Sustainable Consumption,reject,"{""usa"":""No""}"
