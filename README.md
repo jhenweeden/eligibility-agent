@@ -11,6 +11,9 @@ in WordPress via a button + modal.
   of editing that object, not rebuilding anything.
 - `api/submit.js` — Vercel serverless function that logs each submission by
   appending a row to a CSV file committed into this GitHub repo.
+- `api/check-email.js` — Vercel serverless function that checks whether an
+  email already has a logged submission in the current calendar month, used
+  to reject repeat submissions before asking the program-area questions.
 - `wordpress-embed.html` — snippet for a WordPress Custom HTML block: a button
   that opens the widget in a modal iframe.
 
@@ -41,6 +44,16 @@ Create a repo (e.g. `eligibility-agent`) and push these files to it.
    should appear, and paste the snippet in.
 3. The button opens the widget in a modal overlay; closing it unloads the
    iframe so the next open always starts a clean session.
+
+## Blocking and duplicate checks
+
+After the email is entered, before any program-area questions are asked, the
+widget rejects the person immediately if either is true:
+
+- their email is in the `BLOCKED_EMAILS` list in `index.html`, or
+- their email already has a logged submission (accept or reject) from the
+  current calendar month, checked via `/api/check-email` against
+  `submissions.csv`.
 
 ## Logging
 

@@ -103,6 +103,7 @@
    leave this as a relative path.
 ------------------------------------------------------------------- */
 const SUBMIT_ENDPOINT = '/api/submit';
+const CHECK_EMAIL_ENDPOINT = '/api/check-email';
 
 const SOUTH_AMERICA = ['argentina','bolivia','brazil','chile','colombia','ecuador','guyana','paraguay','peru','suriname','uruguay','venezuela'];
 const CENTRAL_AMERICA = ['belize','costa rica','el salvador','guatemala','honduras','nicaragua','panama'];
@@ -122,6 +123,7 @@ function isBlockedEmail(email) {
 
 const ACCEPT_TEXT = 'Thank you for those answers, we will be contacting you by email within the next couple of working days with a link to submit an LOI and a code.';
 const REJECT_TEXT = 'According to your answers, you would not be a good fit for our program area.';
+const ALREADY_SUBMITTED_TEXT = 'Our records show this email has already submitted an eligibility check this month. Please check back next month.';
 
 const PROGRAM_AREAS = [
   'California Floristic Province',
@@ -264,6 +266,23 @@ function showEndCard(kind, text) {
   submitLog(kind === 'accept' ? 'accept' : 'reject');
 }
 
+async function hasBeenLoggedThisMonth(email) {
+  try {
+    const resp = await fetch(CHECK_EMAIL_ENDPOINT, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email })
+    });
+    if (!resp.ok) return false;
+    const data = await resp.json();
+    return !!data.loggedThisMonth;
+  } catch (e) {
+    // If the check itself fails, don't block the person from applying.
+    console.error('Could not check prior submissions', e);
+    return false;
+  }
+}
+
 async function submitLog(determination) {
   try {
     await fetch(SUBMIT_ENDPOINT, {
@@ -285,11 +304,18 @@ async function submitLog(determination) {
 function askEmail() {
   clearThread();
   addMessage('agent', 'Please provide your email.');
-  renderTextInput('name@organization.com', val => {
+  renderTextInput('name@organization.com', async val => {
     addMessage('user', val);
     state.email = val;
     if (isBlockedEmail(val)) {
       showEndCard('reject', REJECT_TEXT);
+      return;
+    }
+    clearInputArea();
+    addMessage('agent', 'Checking your submission history…');
+    const alreadySubmitted = await hasBeenLoggedThisMonth(val);
+    if (alreadySubmitted) {
+      showEndCard('reject', ALREADY_SUBMITTED_TEXT);
       return;
     }
     askProgramArea();
