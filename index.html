@@ -18,7 +18,7 @@
   * { box-sizing: border-box; }
   body {
     margin: 0;
-    background: var(--bg);
+    background: transparent;
     color: var(--ink);
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
     min-height: 100vh;
@@ -125,7 +125,6 @@ function isBlockedEmail(email) {
 const ACCEPT_TEXT = 'Thank you, you have passed eligibility. Please click the link below, register and complete the “LOI Applicants” form to submit your LOI. You will receive a confirmation email when your form is complete. We will review your LOI during the 2 weeks following the submission month and get back to you with a reply declining any further application or an invitation to submit a full application.';
 const LOI_URL = 'https://www.grantinterface.com/Home/Logon?urlkey=weedenf';
 const REJECT_TEXT = 'Unfortunately you are not eligible for further consideration. Non-eligibility can be the result of our questions, our quota, previous communication or contact, or other parameters that may arise. Thank you.';
-const ALREADY_SUBMITTED_TEXT = 'Our records show this email has already submitted an eligibility check this month. Please check back next month.';
 const ALREADY_ACCEPTED_TEXT = 'Our records show this email was already deemed eligible within the past year. Please check back after your one-year eligibility window has passed.';
 
 const PROGRAM_AREAS = [
@@ -371,7 +370,7 @@ async function advance(next) {
     }
     const history = await checkEmailHistory(state.email);
     if (history.loggedThisMonth) {
-      showEndCard('reject', ALREADY_SUBMITTED_TEXT);
+      showEndCard('reject', REJECT_TEXT);
       return;
     }
     if (history.acceptedInLastYear) {
