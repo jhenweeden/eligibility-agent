@@ -16,3 +16,4 @@ timestamp,email,program_area,determination,answers
 2026-08-26T17:47:21.439Z,John@jweeden.com,Global Biodiversity,accept,"{""country"":""Ethiopia"",""pct"":""50""}"
 2026-08-26T19:17:09.152Z,development@dolphinproject.org,Conservation Infrastructure,reject,"{""usa"":""No""}"
 2026-08-26T19:18:02.184Z,development@dolphinproject.org,Global Biodiversity,reject,"{""country"":""Indonesia""}"
+2026-08-26T19:18:47.148Z,development@dolphinproject.org,Environmental Education,reject,"{""indep"":""No""}"
