@@ -122,7 +122,7 @@ function isBlockedEmail(email) {
   return BLOCKED_EMAILS.includes(email.trim().toLowerCase());
 }
 
-const ACCEPT_TEXT = 'Thank you for those answers. Please click the link below, register and complete the “New Applicants” form to submit your LOI. You will receive a confirmation email when your form is complete. We will review your application and get back to you with a reply. If the work proposed is of interest and/or fits into one of our program areas, we will invite a full proposal.';
+const ACCEPT_TEXT = 'Thank you, you have passed eligibility. Please click the link below, register and complete the “LOI Applicants” form to submit your LOI. You will receive a confirmation email when your form is complete. We will review your LOI during the 2 weeks following the submission month and get back to you with a reply declining any further application or an invitation to submit a full application.';
 const LOI_URL = 'https://www.grantinterface.com/Home/Logon?urlkey=weedenf';
 const REJECT_TEXT = 'According to your answers, you would not be a good fit for our program area.';
 const ALREADY_SUBMITTED_TEXT = 'Our records show this email has already submitted an eligibility check this month. Please check back next month.';
@@ -260,7 +260,7 @@ function showEndCard(kind, text) {
   clearInputArea();
   const div = document.createElement('div');
   div.className = 'end-card ' + kind;
-  div.innerHTML = '<div class="label">' + (kind === 'accept' ? 'Eligible' : 'Not eligible') + '</div><div class="text"></div>';
+  div.innerHTML = '<div class="text"></div>';
   div.querySelector('.text').textContent = text;
 
   if (kind === 'accept') {
