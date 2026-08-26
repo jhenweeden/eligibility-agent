@@ -55,6 +55,12 @@ export default async function handler(req, res) {
     const content = Buffer.from(data.content, 'base64').toString('utf-8');
 
     const targetEmail = email.trim().toLowerCase();
+
+    if (targetEmail === 'john@jweeden.com') {
+      res.status(200).json({ loggedThisMonth: false });
+      return;
+    }
+
     const now = new Date();
     const currentMonthKey = now.getUTCFullYear() + '-' + String(now.getUTCMonth() + 1).padStart(2, '0');
 
