@@ -1,8 +1,8 @@
 // Vercel serverless function: POST /api/check-email
 // Looks up whether an email address already has a logged submission in the
-// current calendar month, by reading the same submissions.csv used by
-// api/submit.js. Used to reject repeat submissions within a month before
-// asking the program-area questions.
+// current calendar month, or was accepted within the past year, by reading
+// the same submissions.csv used by api/submit.js. Used to reject repeat
+// submissions and repeat acceptances after the program-area questions.
 //
 // Required environment variables (same as api/submit.js):
 //   GITHUB_TOKEN     - a GitHub personal access token with "repo" scope
@@ -44,7 +44,7 @@ export default async function handler(req, res) {
 
     if (getResp.status === 404) {
       // No log file yet, so nothing could have been logged.
-      res.status(200).json({ loggedThisMonth: false });
+      res.status(200).json({ loggedThisMonth: false, acceptedInLastYear: false });
       return;
     }
     if (!getResp.ok) {
@@ -57,23 +57,32 @@ export default async function handler(req, res) {
     const targetEmail = email.trim().toLowerCase();
 
     if (targetEmail === 'john@jweeden.com') {
-      res.status(200).json({ loggedThisMonth: false });
+      res.status(200).json({ loggedThisMonth: false, acceptedInLastYear: false });
       return;
     }
 
     const now = new Date();
     const currentMonthKey = now.getUTCFullYear() + '-' + String(now.getUTCMonth() + 1).padStart(2, '0');
+    const oneYearAgo = new Date(now);
+    oneYearAgo.setUTCFullYear(oneYearAgo.getUTCFullYear() - 1);
+
+    let loggedThisMonth = false;
+    let acceptedInLastYear = false;
 
     const lines = content.split('\n').slice(1); // skip header row
-    const loggedThisMonth = lines.some(line => {
-      if (!line.trim()) return false;
-      const [timestamp, rowEmail] = parseCsvLine(line);
-      if (!timestamp || !rowEmail) return false;
-      if (rowEmail.trim().toLowerCase() !== targetEmail) return false;
-      return timestamp.slice(0, 7) === currentMonthKey;
+    lines.forEach(line => {
+      if (!line.trim()) return;
+      const [timestamp, rowEmail, , determination] = parseCsvLine(line);
+      if (!timestamp || !rowEmail) return;
+      if (rowEmail.trim().toLowerCase() !== targetEmail) return;
+
+      if (timestamp.slice(0, 7) === currentMonthKey) loggedThisMonth = true;
+      if (determination && determination.trim().toLowerCase() === 'accept' && new Date(timestamp) >= oneYearAgo) {
+        acceptedInLastYear = true;
+      }
     });
 
-    res.status(200).json({ loggedThisMonth });
+    res.status(200).json({ loggedThisMonth, acceptedInLastYear });
   } catch (e) {
     res.status(500).json({ error: e.message });
   }

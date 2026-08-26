@@ -126,6 +126,7 @@ const ACCEPT_TEXT = 'Thank you, you have passed eligibility. Please click the li
 const LOI_URL = 'https://www.grantinterface.com/Home/Logon?urlkey=weedenf';
 const REJECT_TEXT = 'Unfortunately you are not eligible for further consideration. Non-eligibility can be the result of our questions, our quota, previous communication or contact, or other parameters that may arise. Thank you.';
 const ALREADY_SUBMITTED_TEXT = 'Our records show this email has already submitted an eligibility check this month. Please check back next month.';
+const ALREADY_ACCEPTED_TEXT = 'Our records show this email was already deemed eligible within the past year. Please check back after your one-year eligibility window has passed.';
 
 const PROGRAM_AREAS = [
   'California Floristic Province',
@@ -279,20 +280,21 @@ function showEndCard(kind, text) {
   submitLog(kind === 'accept' ? 'accept' : 'reject');
 }
 
-async function hasBeenLoggedThisMonth(email) {
+async function checkEmailHistory(email) {
+  const fallback = { loggedThisMonth: false, acceptedInLastYear: false };
   try {
     const resp = await fetch(CHECK_EMAIL_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
-    if (!resp.ok) return false;
+    if (!resp.ok) return fallback;
     const data = await resp.json();
-    return !!data.loggedThisMonth;
+    return { loggedThisMonth: !!data.loggedThisMonth, acceptedInLastYear: !!data.acceptedInLastYear };
   } catch (e) {
     // If the check itself fails, don't block the person from applying.
     console.error('Could not check prior submissions', e);
-    return false;
+    return fallback;
   }
 }
 
@@ -369,9 +371,13 @@ async function advance(next) {
       showEndCard('reject', REJECT_TEXT);
       return;
     }
-    const alreadySubmitted = await hasBeenLoggedThisMonth(state.email);
-    if (alreadySubmitted) {
+    const history = await checkEmailHistory(state.email);
+    if (history.loggedThisMonth) {
       showEndCard('reject', ALREADY_SUBMITTED_TEXT);
+      return;
+    }
+    if (history.acceptedInLastYear) {
+      showEndCard('reject', ALREADY_ACCEPTED_TEXT);
       return;
     }
     showEndCard(next, next === 'accept' ? ACCEPT_TEXT : REJECT_TEXT);
