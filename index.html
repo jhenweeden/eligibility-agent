@@ -149,8 +149,6 @@ const FLOWS = {
   ],
   'Environmental Education': [
     { id: 'indep', type: 'yesno', text: 'Is your organization located in the USA?',
-      resolve: yes => yes ? 'usa' : 'reject' },
-    { id: 'usa', type: 'yesno', text: 'Is your organization located in the USA?',
       resolve: yes => yes ? 'accept' : 'reject' }
   ],
   'Global Biodiversity': [
