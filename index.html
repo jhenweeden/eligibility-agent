@@ -139,7 +139,7 @@ const PROGRAM_AREAS = [
 // Each flow is a list of steps. A step resolves to 'accept', 'reject', or the id of the next step.
 const FLOWS = {
   'California Floristic Province': [
-    { id: 'ca', type: 'yesno', text: 'Is your project located in California?',
+    { id: 'ca', type: 'yesno', text: 'Is your project located in the California Floristic Province that spans most of California, southwestern Oregon, and northwestern Baja California, Mexico.',
       resolve: yes => yes ? 'accept' : 'reject' }
   ],
   'Conservation Infrastructure': [
