@@ -14,3 +14,4 @@ timestamp,email,program_area,determination,answers
 2026-08-26T17:38:58.365Z,john@jweeden.com,Conservation Infrastructure,accept,"{""usa"":""Yes""}"
 2026-08-26T17:45:12.177Z,john@jweeden.com,Northern Rockies,reject,"{""usa"":""No""}"
 2026-08-26T17:47:21.439Z,John@jweeden.com,Global Biodiversity,accept,"{""country"":""Ethiopia"",""pct"":""50""}"
+2026-08-26T19:17:09.152Z,development@dolphinproject.org,Conservation Infrastructure,reject,"{""usa"":""No""}"
