@@ -317,20 +317,9 @@ async function submitLog(determination) {
 function askEmail() {
   clearThread();
   addMessage('agent', 'Please provide your email.');
-  renderTextInput('name@organization.com', async val => {
+  renderTextInput('name@organization.com', val => {
     addMessage('user', val);
     state.email = val;
-    if (isBlockedEmail(val)) {
-      showEndCard('reject', REJECT_TEXT);
-      return;
-    }
-    clearInputArea();
-    addMessage('agent', 'Checking your submission history…');
-    const alreadySubmitted = await hasBeenLoggedThisMonth(val);
-    if (alreadySubmitted) {
-      showEndCard('reject', ALREADY_SUBMITTED_TEXT);
-      return;
-    }
     askProgramArea();
   });
 }
@@ -372,11 +361,20 @@ function runStep(stepId) {
   }
 }
 
-function advance(next) {
-  if (next === 'accept') {
-    showEndCard('accept', ACCEPT_TEXT);
-  } else if (next === 'reject') {
-    showEndCard('reject', REJECT_TEXT);
+async function advance(next) {
+  if (next === 'accept' || next === 'reject') {
+    clearInputArea();
+    addMessage('agent', 'Checking your submission history…');
+    if (isBlockedEmail(state.email)) {
+      showEndCard('reject', REJECT_TEXT);
+      return;
+    }
+    const alreadySubmitted = await hasBeenLoggedThisMonth(state.email);
+    if (alreadySubmitted) {
+      showEndCard('reject', ALREADY_SUBMITTED_TEXT);
+      return;
+    }
+    showEndCard(next, next === 'accept' ? ACCEPT_TEXT : REJECT_TEXT);
   } else {
     runStep(next);
   }
