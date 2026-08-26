@@ -122,10 +122,11 @@ function isBlockedEmail(email) {
   return BLOCKED_EMAILS.includes(email.trim().toLowerCase());
 }
 
-const ACCEPT_TEXT = 'Thank you for those answers. Please click the link below, register and complete the “New Applicants” form to submit your LOI. You will receive a confirmation email when your form is complete. We will review your application and get back to you with a reply. If the work proposed is of interest and/or fits into one of our program areas, we will invite a full proposal.';
+const ACCEPT_TEXT = 'Thank you, you have passed eligibility. Please click the link below, register and complete the “LOI Applicants” form to submit your LOI. You will receive a confirmation email when your form is complete. We will review your LOI during the 2 weeks following the submission month and get back to you with a reply declining any further application or an invitation to submit a full application.';
 const LOI_URL = 'https://www.grantinterface.com/Home/Logon?urlkey=weedenf';
-const REJECT_TEXT = 'According to your answers, you would not be a good fit for our program area.';
+const REJECT_TEXT = 'Unfortunately you are not eligible for further consideration. Non-eligibility can be the result of our questions, our quota, previous communication or contact, or other parameters that may arise. Thank you.';
 const ALREADY_SUBMITTED_TEXT = 'Our records show this email has already submitted an eligibility check this month. Please check back next month.';
+const ALREADY_ACCEPTED_TEXT = 'Our records show this email was already deemed eligible within the past year. Please check back after your one-year eligibility window has passed.';
 
 const PROGRAM_AREAS = [
   'California Floristic Province',
@@ -139,7 +140,7 @@ const PROGRAM_AREAS = [
 // Each flow is a list of steps. A step resolves to 'accept', 'reject', or the id of the next step.
 const FLOWS = {
   'California Floristic Province': [
-    { id: 'ca', type: 'yesno', text: 'Is your project located in California?',
+    { id: 'ca', type: 'yesno', text: 'Is your project located in the California Floristic Province that spans most of California, southwestern Oregon, and northwestern Baja California, Mexico.',
       resolve: yes => yes ? 'accept' : 'reject' }
   ],
   'Conservation Infrastructure': [
@@ -147,9 +148,7 @@ const FLOWS = {
       resolve: yes => yes ? 'accept' : 'reject' }
   ],
   'Environmental Education': [
-    { id: 'indep', type: 'yesno', text: 'Is your organization independent from a university?',
-      resolve: yes => yes ? 'usa' : 'reject' },
-    { id: 'usa', type: 'yesno', text: 'Is your organization located in the USA?',
+    { id: 'indep', type: 'yesno', text: 'Is your organization located in the USA?',
       resolve: yes => yes ? 'accept' : 'reject' }
   ],
   'Global Biodiversity': [
@@ -163,7 +162,7 @@ const FLOWS = {
       } }
   ],
   'Northern Rockies': [
-    { id: 'usa', type: 'yesno', text: 'Is your organization located in the USA?',
+    { id: 'usa', type: 'yesno', text: 'Is your project located in the Northern Rockies in the USA?',
       resolve: yes => yes ? 'accept' : 'reject' }
   ],
   'Sustainable Consumption': [
@@ -260,7 +259,7 @@ function showEndCard(kind, text) {
   clearInputArea();
   const div = document.createElement('div');
   div.className = 'end-card ' + kind;
-  div.innerHTML = '<div class="label">' + (kind === 'accept' ? 'Eligible' : 'Not eligible') + '</div><div class="text"></div>';
+  div.innerHTML = '<div class="text"></div>';
   div.querySelector('.text').textContent = text;
 
   if (kind === 'accept') {
@@ -279,20 +278,21 @@ function showEndCard(kind, text) {
   submitLog(kind === 'accept' ? 'accept' : 'reject');
 }
 
-async function hasBeenLoggedThisMonth(email) {
+async function checkEmailHistory(email) {
+  const fallback = { loggedThisMonth: false, acceptedInLastYear: false };
   try {
     const resp = await fetch(CHECK_EMAIL_ENDPOINT, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ email })
     });
-    if (!resp.ok) return false;
+    if (!resp.ok) return fallback;
     const data = await resp.json();
-    return !!data.loggedThisMonth;
+    return { loggedThisMonth: !!data.loggedThisMonth, acceptedInLastYear: !!data.acceptedInLastYear };
   } catch (e) {
     // If the check itself fails, don't block the person from applying.
     console.error('Could not check prior submissions', e);
-    return false;
+    return fallback;
   }
 }
 
@@ -317,20 +317,9 @@ async function submitLog(determination) {
 function askEmail() {
   clearThread();
   addMessage('agent', 'Please provide your email.');
-  renderTextInput('name@organization.com', async val => {
+  renderTextInput('name@organization.com', val => {
     addMessage('user', val);
     state.email = val;
-    if (isBlockedEmail(val)) {
-      showEndCard('reject', REJECT_TEXT);
-      return;
-    }
-    clearInputArea();
-    addMessage('agent', 'Checking your submission history…');
-    const alreadySubmitted = await hasBeenLoggedThisMonth(val);
-    if (alreadySubmitted) {
-      showEndCard('reject', ALREADY_SUBMITTED_TEXT);
-      return;
-    }
     askProgramArea();
   });
 }
@@ -372,11 +361,24 @@ function runStep(stepId) {
   }
 }
 
-function advance(next) {
-  if (next === 'accept') {
-    showEndCard('accept', ACCEPT_TEXT);
-  } else if (next === 'reject') {
-    showEndCard('reject', REJECT_TEXT);
+async function advance(next) {
+  if (next === 'accept' || next === 'reject') {
+    clearInputArea();
+    addMessage('agent', 'Checking your submission history…');
+    if (isBlockedEmail(state.email)) {
+      showEndCard('reject', REJECT_TEXT);
+      return;
+    }
+    const history = await checkEmailHistory(state.email);
+    if (history.loggedThisMonth) {
+      showEndCard('reject', ALREADY_SUBMITTED_TEXT);
+      return;
+    }
+    if (history.acceptedInLastYear) {
+      showEndCard('reject', ALREADY_ACCEPTED_TEXT);
+      return;
+    }
+    showEndCard(next, next === 'accept' ? ACCEPT_TEXT : REJECT_TEXT);
   } else {
     runStep(next);
   }
