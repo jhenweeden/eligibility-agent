@@ -21,3 +21,4 @@ timestamp,email,program_area,determination,answers
 2026-09-16T15:35:11.389Z,john@jweeden.com,Global Biodiversity,accept,"{""country"":""Tanzania"",""pct"":""25""}"
 2026-09-16T16:07:49.575Z,john@jweeden.com,California Floristic Province,accept,"{""ca"":""Yes""}"
 2026-09-16T16:10:27.909Z,john@p-dubinc.com,Sustainable Consumption,reject,"{""usa"":""Yes""}"
+2026-09-16T16:18:23.964Z,john@jweeden.com,Environmental Education,accept,"{""indep"":""Yes""}"
