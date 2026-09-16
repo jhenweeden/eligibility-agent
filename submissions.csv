@@ -22,3 +22,4 @@ timestamp,email,program_area,determination,answers
 2026-09-16T16:07:49.575Z,john@jweeden.com,California Floristic Province,accept,"{""ca"":""Yes""}"
 2026-09-16T16:10:27.909Z,john@p-dubinc.com,Sustainable Consumption,reject,"{""usa"":""Yes""}"
 2026-09-16T16:18:23.964Z,john@jweeden.com,Environmental Education,accept,"{""indep"":""Yes""}"
+2026-09-16T16:27:43.260Z,john@jweeden.com,California Floristic Province,reject,"{""ca"":""No""}"
