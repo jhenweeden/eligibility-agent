@@ -18,3 +18,4 @@ timestamp,email,program_area,determination,answers
 2026-08-26T19:18:02.184Z,development@dolphinproject.org,Global Biodiversity,reject,"{""country"":""Indonesia""}"
 2026-08-26T19:18:47.148Z,development@dolphinproject.org,Environmental Education,reject,"{""indep"":""No""}"
 2026-09-16T15:33:49.592Z,john@jweeden.com,California Floristic Province,accept,"{""ca"":""Yes""}"
+2026-09-16T15:35:11.389Z,john@jweeden.com,Global Biodiversity,accept,"{""country"":""Tanzania"",""pct"":""25""}"
